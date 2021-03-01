@@ -1,4 +1,4 @@
-﻿namespace NugetWorker
+﻿namespace NugetDownloaderApp.NugetWorker.Model
 {
     public class DllInfo
     {

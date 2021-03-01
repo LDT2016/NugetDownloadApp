@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NugetWorker.Utility
+namespace NugetDownloaderApp.NugetWorker.Model
 {
     public class NugetSettings
     {

@@ -118,6 +118,7 @@
     <Compile Include="NugetWorker\Model\DllInfo.cs" />
     <Compile Include="NugetWorker\Model\NugetRepository.cs" />
     <Compile Include="NugetWorker\Model\PackageWrapper.cs" />
+    <Compile Include="NugetWorker\Model\ProjectContext.cs" />
     <Compile Include="NugetWorker\NugetEngine.cs" />
     <Compile Include="NugetWorker\PackageDownloder.cs" />
     <Compile Include="NugetWorker\PackageFinder.cs" />

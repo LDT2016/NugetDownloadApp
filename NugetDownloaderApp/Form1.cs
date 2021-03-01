@@ -1,7 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Forms;
-using NugetWorker;
+using NugetDownloaderApp.NugetWorker;
+using NugetDownloaderApp.NugetWorker.Utility;
 
 namespace NugetDownloaderApp
 {
@@ -21,6 +22,8 @@ namespace NugetDownloaderApp
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
+            toolStripStatusLabel1.Text = "Downloading...";
+
             var logger = NugetHelper.Instance.logger;
             var pack = textBox1.Text.Trim();
 
@@ -32,7 +35,8 @@ namespace NugetDownloaderApp
 
             try
             {
-                logger.LogInformation("!!!!!!!!!Begin!!!!!!!!!");
+                logger.LogDebug("");
+                logger.LogDebug("!!!!!!!!!Begin!!!!!!!!!");
                 var nugetEngine = new NugetEngine();
 
                 nugetEngine.GetPackage(packageName, version)
@@ -40,24 +44,26 @@ namespace NugetDownloaderApp
 
                 foreach (var dll in nugetEngine.dllInfos)
                 {
-                    logger.LogInformation($"Relavant dll : {dll.rootPackage} | {dll.framework} | {dll.path} | ");
+                    logger.LogDebug($"Relavant dll : {dll.rootPackage} | {dll.framework} | {dll.path} | ");
                 }
-
             }
 
             catch (Exception ex)
             {
-                logger.LogInformation($"Exception Occured : {ex.Message} | {ex.StackTrace}");
+                logger.LogDebug($"Exception Occured : {ex.Message} | {ex.StackTrace}");
             }
             finally
             {
-                logger.LogInformation("!!!!!!!!!!End!!!!!!!!!!");
+                logger.LogDebug("!!!!!!!!!!End!!!!!!!!!!");
+                logger.LogDebug("");
                 e.Cancel = true;
             }
         }
 
         // This event handler updates the progress bar.
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e) { }
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+        }
 
         // This event handler deals with the results of the
         // background operation.
@@ -66,11 +72,14 @@ namespace NugetDownloaderApp
             // First, handle the case where an exception was thrown.
             if (e.Error != null)
             {
-                MessageBox.Show(e.Error.Message);
+                toolStripStatusLabel1.Text = e.Error.Message;
             }
             else if (e.Cancelled)
             {
-                MessageBox.Show("Ok!");
+                toolStripStatusLabel1.Text = "Ok, Finished!";
+            }
+            else
+            {
             }
         }
 

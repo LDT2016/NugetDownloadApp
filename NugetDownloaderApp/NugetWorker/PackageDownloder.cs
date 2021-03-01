@@ -10,8 +10,10 @@ using NuGet.ProjectManagement;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
+using NugetDownloaderApp.NugetWorker.Model;
+using NugetDownloaderApp.NugetWorker.Utility;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker
 {
     public class PackageDownloder
     {
@@ -57,7 +59,6 @@ namespace NugetWorker
 
                 var rootPath = NugetHelper.Instance.GetNugetSettings()
                                           .NugetFolder;
-                var ss = Settings.DefaultSettingsFileName;
 
                 //var settings = Settings.LoadDefaultSettings(@"C:\Program Files (x86)\NuGet\Config", "Microsoft.VisualStudio.Offline.config", new MachineWideSettings());
                 //var machineWideSettings = new MachineWideSettings();
@@ -90,15 +91,15 @@ namespace NugetWorker
 
                 if (!packageAlreadyExists)
                 {
-                    packageManager.InstallPackageAsync(project, packageIdentity, resolutionContext, projectContext, downloadContext, _sourceRepos, new List<SourceRepository>(), CancellationToken.None);
+                    await packageManager.InstallPackageAsync(project, packageIdentity, resolutionContext, projectContext, downloadContext, _sourceRepos, new List<SourceRepository>(), CancellationToken.None);
 
                     var packageDeps = packageManager.GetInstalledPackagesDependencyInfo(project, CancellationToken.None, true);
-                    _logger.LogInformation($"Package {packageIdentity.Id} is got Installed at  | {project.GetInstalledPath(packageIdentity)} ");
+                    _logger.LogDebug($"Package {packageIdentity.Id} is got Installed at  | {project.GetInstalledPath(packageIdentity)} ");
                 }
                 else
                 {
                     var packageDeps = packageManager.GetInstalledPackagesDependencyInfo(project, CancellationToken.None, true);
-                    _logger.LogInformation($"Package {packageIdentity.Id} is Already Installed at  | {project.GetInstalledPath(packageIdentity)} " + " | skipping instalation !!");
+                    _logger.LogDebug($"Package {packageIdentity.Id} is Already Installed at  | {project.GetInstalledPath(packageIdentity)} " + " | skipping instalation !!");
                 }
 
                 #region GetDll paths
@@ -129,11 +130,11 @@ namespace NugetWorker
 
                 #endregion
 
-                _logger.LogInformation($"done for package {packageIdentity.Id} , with total Dlls {downloadedDllPaths.Count}");
+                _logger.LogDebug($"done for package {packageIdentity.Id} , with total Dlls {downloadedDllPaths.Count}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                NugetHelper.Instance.logger.LogDebug(e.Message);
 
                 throw;
             }

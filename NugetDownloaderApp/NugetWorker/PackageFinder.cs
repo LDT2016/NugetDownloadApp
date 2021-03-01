@@ -6,8 +6,10 @@ using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using NugetDownloaderApp.NugetWorker.Model;
+using NugetDownloaderApp.NugetWorker.Utility;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker
 {
     public class PackageFinder
     {
@@ -30,7 +32,7 @@ namespace NugetWorker
 
             _sourceRepos = NugetHelper.Instance.GetSourceRepos();
 
-             packageDownloder = new PackageDownloder();
+            packageDownloder = new PackageDownloder();
         }
 
         #endregion
@@ -45,27 +47,15 @@ namespace NugetWorker
 
         #region methods
 
-        //public List<PackageWrapper> GetListOfPackageIdentities(string packageName, string version)
-        //{
-
-        //    var packageWrapper=GetPackageByExact( packageName,  version);
-        //    foreach(var childPackageIdentity in packageWrapper.childPackageIdentities)
-        //    {
-        //        packageWrappers.AddRange(GetListOfPackageIdentities(childPackageIdentity.Id, childPackageIdentity.Version.Version.ToString()));
-        //    }
-        //   // packageWrappers.Add(packageWrapper);
-        //    return packageWrappers;
-        //}
-
         public List<PackageWrapper> GetListOfPackageIdentities(string packageName, string version)
         {
             //thats a recursive loop , this will give list of root as well as all dependency as root during recursion 
             GetListOfPackageIdentitiesRecursive(packageName, version);
             Task.WhenAll(_packageDowloadTasks).Wait();
             packageWrappers = packageWrappers.DistinctBy(x => x.packageName).ToList();
-            dllInfos = packageDownloder.downloadedDllPaths.DistinctBy(x=>x.path).ToList();
-            
-             return packageWrappers;
+            dllInfos = packageDownloder.downloadedDllPaths.DistinctBy(x => x.path).ToList();
+
+            return packageWrappers;
         }
 
         public PackageWrapper GetPackageByExactSearch(string packageName, string version)
@@ -78,8 +68,8 @@ namespace NugetWorker
             {
                 if (!packageFound)
                 {
-                    // _logger.LogInformation("###################################################################");
-                    //_logger.LogInformation($"Looking in Repo {sourceRepository.PackageSource.Source} for package : {packageName}");
+                    // _logger.LogDebug("###################################################################");
+                    //_logger.LogDebug($"Looking in Repo {sourceRepository.PackageSource.Source} for package : {packageName}");
 
                     //extact search 
                     var packageMetadataResource = sourceRepository
@@ -88,7 +78,7 @@ namespace NugetWorker
                     var sourceCacheContext = new SourceCacheContext();
 
                     ////below will slow down search as it is disabling search
-                    if(NugetHelper.Instance.GetNugetSettings().DisableCache)
+                    if (NugetHelper.Instance.GetNugetSettings().DisableCache)
                     {
                         sourceCacheContext.NoCache = true;
                         sourceCacheContext.DirectDownload = true;
@@ -99,23 +89,23 @@ namespace NugetWorker
                     //if user has mentioned version , then search specifcially for that version only , else get latest version
                     if (!string.IsNullOrWhiteSpace(version))
                     {
-                         rootPackage = GetPackageFromRepoWithVersion(packageName, version,
-                         packageMetadataResource, sourceCacheContext, sourceRepository);
+                        rootPackage = GetPackageFromRepoWithVersion(packageName, version,
+                        packageMetadataResource, sourceCacheContext, sourceRepository);
                     }
                     else
                     {
-                        rootPackage = GetPackageFromRepoWithoutVersion(packageName, 
+                        rootPackage = GetPackageFromRepoWithoutVersion(packageName,
                          packageMetadataResource, sourceCacheContext, sourceRepository);
                     }
 
                     if (rootPackage == null)
                     {
-                        _logger.LogInformation(" No Package found in Repo " +
+                        _logger.LogDebug(" No Package found in Repo " +
                             $"{sourceRepository.PackageSource.Source} for package : {packageName} | {version}");
 
                         //as we have not found package , there is no need to process further ,look for next repo by continue
                         continue;
-                        
+
                     }
 
                     packageWrapper = new PackageWrapper();
@@ -129,13 +119,13 @@ namespace NugetWorker
                     //load child package identities
                     packageWrapper.childPackageIdentities = NugetHelper.Instance.GetChildPackageIdentities(rootPackage);
 
-                    _logger.LogInformation($"Latest Package form Exact Search : {packageWrapper.packageName }" +
+                    _logger.LogDebug($"Latest Package form Exact Search : {packageWrapper.packageName }" +
                                            $"| {packageWrapper.version } in Repo {sourceRepository.PackageSource.Source}");
 
                     packageFound = true;
                     //as package is found , we can break loop here for this package, but keeping above bool as well for testing
-                     
-                    _logger.LogInformation("---------------------------------------------------------------------");
+
+                    _logger.LogDebug("---------------------------------------------------------------------");
                     break;
                 }
 
@@ -158,32 +148,33 @@ namespace NugetWorker
             PackageWrapper packageWrapper = null;
 
             #region processing
-            _logger.LogInformation($"Target frameworkName : {_targetFramwork}");
+
+            _logger.LogDebug($"Target frameworkName : {_targetFramwork}");
 
 
             //create search criteria
             var filter = new SearchFilter(true, SearchFilterType.IsLatestVersion);
+
             filter.SupportedFrameworks = new List<string>
-                                         { _targetFramwork };
-            
+                                         {
+                                             _targetFramwork
+                                         };
+
 
             foreach (var sourceRepository in _sourceRepos)
             {
                 if (!packageFound)
                 {
-                    // _logger.LogInformation("###################################################################");
-                    //_logger.LogInformation($"Looking in Repo {sourceRepository.PackageSource.Source} for package : {packageName}");
-                    
                     //create package source resource - Full Search  - all matching keywords
-                    var searchResource = sourceRepository.
-                                         GetResourceAsync<PackageSearchResource>().Result;
-                    var FullsearchResults = searchResource
-                                            .SearchAsync(packageName, filter, 0, 20, _logger, CancellationToken.None).Result;
+                    var searchResource = sourceRepository.GetResourceAsync<PackageSearchResource>()
+                                                         .Result;
 
-                    if (FullsearchResults.Count() == 0 || 
-                        !FullsearchResults.Any(x=>x.Identity.Id.ToLower()==packageName.ToLower()))
+                    var FullsearchResults = searchResource.SearchAsync(packageName, filter, 0, 20, _logger, CancellationToken.None)
+                                                          .Result;
+
+                    if (FullsearchResults.Count() == 0 || !FullsearchResults.Any(x => x.Identity.Id.ToLower() == packageName.ToLower()))
                     {
-                        _logger.LogInformation($"Full Search - No Package found in Repo {sourceRepository.PackageSource.Source} for package : {packageName}");
+                        _logger.LogDebug($"Full Search - No Package found in Repo {sourceRepository.PackageSource.Source} for package : {packageName}");
                     }
                     else
                     {
@@ -191,49 +182,51 @@ namespace NugetWorker
                         FullsearchResults = FullsearchResults.Where(x => x.Identity.Id.ToLower() == packageName.ToLower());
 
                         packageFound = true;
+
                         //got list of matching package , iterate throug it
-                        //foreach (var pgkdata in FullsearchResults)
-                        //{
-                        //    _logger.LogInformation($"Full search Package Located: {pgkdata.Title} | { pgkdata.Identity.Version}");
-                        //    //identity = pgkdata.Identity;
-                        //}
+                        foreach (var pgkdata in FullsearchResults)
+                        {
+                            _logger.LogDebug($"Full search Package Located: {pgkdata.Title} | {pgkdata.Identity.Version}");
+                        }
 
                         //initilize wrapper
                         packageWrapper = new PackageWrapper();
                         IPackageSearchMetadata rootPackage;
+
                         //if version number is present , select that specific package , else select latest
                         if (!string.IsNullOrWhiteSpace(version))
                         {
                             //not checking against Identity.Version & Identity.Version.Version is diffrent
                             //Identity.Version.Version is more accurate but may result in diffrent packages
-                            rootPackage = FullsearchResults.Where(x => x.Identity.HasVersion
-                            && x.Identity.Version.Version.ToString() == version).LastOrDefault();
+                            rootPackage = FullsearchResults.Where(x => x.Identity.HasVersion && x.Identity.Version.Version.ToString() == version)
+                                                           .LastOrDefault();
 
                             //it is possible that no matching version found , then fallback to latest 
                             if (rootPackage == null)
                             {
                                 rootPackage = FullsearchResults.OrderByDescending(x => x.Identity.Version)
-                                .FirstOrDefault();
+                                                               .FirstOrDefault();
                             }
                         }
                         else //select latest version
                         {
                             rootPackage = FullsearchResults.OrderByDescending(x => x.Identity.Version)
-                             .FirstOrDefault();
+                                                           .FirstOrDefault();
                         }
+
                         packageWrapper.rootPackageIdentity = rootPackage.Identity;
 
                         packageWrapper.packageName = packageWrapper.rootPackageIdentity.Id;
 
                         packageWrapper.version = packageWrapper.rootPackageIdentity.Version;
+
                         //save the repo infor as well so that during install it doesnt need to search on all repos
                         packageWrapper.sourceRepository = sourceRepository;
 
                         //load child package identities
                         packageWrapper.childPackageIdentities = NugetHelper.Instance.GetChildPackageIdentities(rootPackage);
 
-                        _logger.LogInformation("Exact Package form Full Search : " +
-                            $"{packageWrapper.packageName }| {packageWrapper.version }");
+                        _logger.LogDebug("Exact Package form Full Search : " + $"{packageWrapper.packageName}| {packageWrapper.version}");
                     }
 
                 }
@@ -253,9 +246,9 @@ namespace NugetWorker
             var ExacactsearchMetadata = packageMetadataResource
                                         .GetMetadataAsync(packageName, true, true, sourceCacheContext, _logger, CancellationToken.None).Result;
 
-            if (ExacactsearchMetadata.Count()==0)
+            if (ExacactsearchMetadata.Count() == 0)
             {
-                _logger.LogInformation("GetPackageFromRepoWithoutVersion - No Package & any version  found in Repo " +
+                _logger.LogDebug("GetPackageFromRepoWithoutVersion - No Package & any version  found in Repo " +
                     $"{sourceRepository.PackageSource.Source} for package : {packageName}");
             }
             else //select latest version
@@ -267,8 +260,10 @@ namespace NugetWorker
             return rootPackage;
         }
 
-        public IPackageSearchMetadata GetPackageFromRepoWithVersion(string packageName, string version , 
-                                                                    PackageMetadataResource packageMetadataResource, SourceCacheContext sourceCacheContext,
+        public IPackageSearchMetadata GetPackageFromRepoWithVersion(string packageName,
+                                                                    string version,
+                                                                    PackageMetadataResource packageMetadataResource,
+                                                                    SourceCacheContext sourceCacheContext,
                                                                     SourceRepository sourceRepository)
         {
             IPackageSearchMetadata rootPackage = null;
@@ -280,18 +275,19 @@ namespace NugetWorker
             //    .GetMetadataAsync(packageName, true, true, sourceCacheContext, _logger, CancellationToken.None).Result;
 
             PackageIdentity packageIdentity = null;
-            NuGetVersion nugetversion=null;
-            if(NuGetVersion.TryParse(version,out nugetversion))
+            NuGetVersion nugetversion = null;
+
+            if (NuGetVersion.TryParse(version, out nugetversion))
             {
                 packageIdentity = new PackageIdentity(packageName, NuGetVersion.Parse(version));
-                var ExacactsearchMetadata = packageMetadataResource
-                                            .GetMetadataAsync(packageIdentity, sourceCacheContext, _logger, CancellationToken.None).Result;
+
+                var ExacactsearchMetadata = packageMetadataResource.GetMetadataAsync(packageIdentity, sourceCacheContext, _logger, CancellationToken.None)
+                                                                   .Result;
 
                 if (ExacactsearchMetadata == null)
                 {
-                    _logger.LogInformation("GetPackageFromRepoWithVersion - No Package found in Repo " +
-                        $"{sourceRepository.PackageSource.Source} for package : {packageName}  with version  {version}");
-                    
+                    _logger.LogDebug("GetPackageFromRepoWithVersion - No Package found in Repo " + $"{sourceRepository.PackageSource.Source} for package : {packageName}  with version  {version}");
+
                     //need to discuss if fallback  should be here as well
                 }
                 else
@@ -299,20 +295,18 @@ namespace NugetWorker
                     rootPackage = ExacactsearchMetadata;
                 }
             }
-            
+
             return rootPackage;
         }
 
         private void GetListOfPackageIdentitiesRecursive(string packageName, string version)
         {
-
-          
-            var  packageWrapper = GetPackageByExactSearch(packageName, version);
-            if(packageWrapper==null)
+            var packageWrapper = GetPackageByExactSearch(packageName, version);
+            if (packageWrapper == null)
             {
                 return;
             }
-            if(packageWrapper.childPackageIdentities.Count>0)
+            if (packageWrapper.childPackageIdentities.Count > 0)
             {
                 Parallel.ForEach(packageWrapper.childPackageIdentities, childPackageIdentity =>
                  {
@@ -322,27 +316,15 @@ namespace NugetWorker
                          childPackageIdentity.Version.Version.ToString());
                      }
                  });
-                //foreach (var childPackageIdentity in packageWrapper.childPackageIdentities)
-                //{
-                //    if(!packageWrappers.ToList().Any(x=>x.packageName.ToLower()==childPackageIdentity.Id.ToLower()))
-                //    {
-                //        GetListOfPackageIdentitiesRecursive(childPackageIdentity.Id,
-                //        childPackageIdentity.Version.Version.ToString());
-                //    }
-             
-                //}
-              
             }
 
-            //packageDownloder.DownloadPackage(packageWrapper);
             _packageDowloadTasks.Add(packageDownloder.DownloadPackage(packageWrapper));
-            //packageDownloder.DownloadPackage(packageWrapper);
-            
+
             lock (islocked)
             {
                 packageWrappers.Add(packageWrapper);
             }
-            
+
         }
 
         #endregion

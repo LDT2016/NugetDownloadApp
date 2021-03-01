@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NugetDownloaderApp.NugetWorker.Model;
+using NugetDownloaderApp.NugetWorker.Utility;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker
 {
     public class NugetEngine
     {
         #region fields
 
         public List<DllInfo> dllInfos = new List<DllInfo>();
-        private List<Task> packageDowloadTasks = new List<Task>();
-        private IList<PackageWrapper> packageWrappers = new List<PackageWrapper>();
 
         #endregion
 
@@ -29,12 +29,12 @@ namespace NugetWorker
                 }
 
                 dllInfos.AddRange(packageFinder.dllInfos);
-                Console.WriteLine($"Total Dlls {dllInfos.Count} for rootpackage {packageName}-{version}");
-                Console.WriteLine("done with nuget engine!!!! ");
+                NugetHelper.Instance.logger.LogDebug($"Total Dlls {dllInfos.Count} for rootpackage {packageName}-{version}");
+                NugetHelper.Instance.logger.LogDebug("done with nuget engine!!!! ");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR : {ex.Message} | {ex.StackTrace}");
+                NugetHelper.Instance.logger.LogDebug($"ERROR : {ex.Message} | {ex.StackTrace}");
             }
         }
 

@@ -2,8 +2,9 @@
 using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.ProjectManagement;
+using NugetDownloaderApp.NugetWorker.Utility;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker.Model
 {
     public class ProjectContext : INuGetProjectContext
     {
@@ -23,12 +24,12 @@ namespace NugetWorker
         public void Log(MessageLevel level, string message, params object[] args)
         {
             // Do your logging here...
-            Console.WriteLine(message);
+            NugetHelper.Instance.logger.LogDebug(message);
         }
 
         public void ReportError(string message)
         {
-            Console.WriteLine(message);
+            NugetHelper.Instance.logger.LogDebug(message);
         }
 
         public FileConflictAction ResolveFileConflict(string message)

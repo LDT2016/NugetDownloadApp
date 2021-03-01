@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NuGet.Common;
 using NuGet.Configuration;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker
 {
     public class MachineWideSettings : IMachineWideSettings
     {

@@ -12,9 +12,9 @@ using NuGet.Packaging.Core;
 using NuGet.ProjectManagement;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NugetWorker.Utility;
+using NugetDownloaderApp.NugetWorker.Model;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker.Utility
 {
     public sealed class NugetHelper
     {
@@ -84,28 +84,6 @@ namespace NugetWorker
             return childPackageIdentities;
         }
 
-        public List<DllInfo> GetDllInfoFromDirectory(string directorypath)
-        {
-            var dllInfos = new List<DllInfo>();
-
-            Console.WriteLine($"finding dll in folder {directorypath}");
-            var d = new DirectoryInfo(directorypath); //Assuming packagepath is your Folder
-            var files = d.GetFiles("*.dll"); //Getting dll files
-
-            foreach (var file in files)
-            {
-                Console.WriteLine($"found dll  {file.Name.ToLower()} at {Path.Combine(directorypath, file.Name)}");
-
-                dllInfos.Add(new DllInfo
-                             {
-                                 name = file.Name.ToLower(),
-                                 path = Path.Combine(directorypath, file.Name)
-                             });
-            }
-
-            return dllInfos;
-        }
-
         public List<DllInfo> GetInstallPackagesDllPath(PackageWrapper packageWrapper, ref FolderNuGetProject project)
         {
             var dllinfo = new List<DllInfo>();
@@ -115,7 +93,7 @@ namespace NugetWorker
 
             if (!string.IsNullOrWhiteSpace(packageFilePath))
             {
-                _logger.LogInformation(packageFilePath);
+                _logger.LogDebug(packageFilePath);
 
                 var archiveReader = new PackageArchiveReader(packageFilePath);
                 var nugetFramwork = NuGetFramework.ParseFrameworkName(Instance.GetTargetFramwork(), new DefaultFrameworkNameProvider());
@@ -145,7 +123,7 @@ namespace NugetWorker
                                             .ToLower();
                         var processor = group.GetProcessor();
 
-                        _logger.LogInformation($"dll Path: {installedDllPath}");
+                        _logger.LogDebug($"dll Path: {installedDllPath}");
 
                         //check if file path exist , then only add
                         if (File.Exists(installedDllPath) && extension == ".dll")
@@ -247,27 +225,6 @@ namespace NugetWorker
                                        : NuGetFramework.ParseFrameworkName(frameworkName, new DefaultFrameworkNameProvider());
 
             return frameworkName;
-        }
-
-        public void WriteLogToFile(string msg)
-        {
-            using (var sw = new StreamWriter(Path.Combine(Instance.GetNugetSettings()
-                                                                  .NugetFolder,
-                                                          "log.txt"),
-                                             true))
-            {
-                sw.AutoFlush = true;
-                sw.WriteLine($"{DateTime.Now} : {msg} | ");
-            }
-        }
-
-        public void writeToFile(string msg)
-        {
-            using (var sw = new StreamWriter("main.log", true))
-            {
-                sw.AutoFlush = true;
-                sw.WriteLine($"{DateTime.Now} : {msg}");
-            }
         }
 
         private string GetNugetSettingsJson()

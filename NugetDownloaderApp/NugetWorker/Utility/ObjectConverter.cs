@@ -1,7 +1,8 @@
 ﻿using System;
 using Newtonsoft.Json;
+using NugetDownloaderApp.NugetWorker.Model;
 
-namespace NugetWorker.Utility
+namespace NugetDownloaderApp.NugetWorker.Utility
 {
     public sealed class ObjectConverter
     {

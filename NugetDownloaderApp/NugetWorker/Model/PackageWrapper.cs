@@ -3,7 +3,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace NugetWorker
+namespace NugetDownloaderApp.NugetWorker.Model
 {
     public class PackageWrapper
     {
