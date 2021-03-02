@@ -30,7 +30,6 @@ namespace NugetDownloaderApp.NugetWorker
 
                 dllInfos.AddRange(packageFinder.dllInfos);
                 NugetHelper.Instance.logger.LogDebug($"Total Dlls {dllInfos.Count} for rootpackage {packageName}-{version}");
-                NugetHelper.Instance.logger.LogDebug("done with nuget engine!!!! ");
             }
             catch (Exception ex)
             {

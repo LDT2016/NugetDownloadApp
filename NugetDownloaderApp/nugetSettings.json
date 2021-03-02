@@ -1,31 +1,10 @@
 {
-  "NugetFolder": "Nugetdownload",
+  "NugetFolder": "download",
   "DisableCache": false,
-  "CSVDirectory": "Nugetdownload/logs",
-  "NugetPackageRegEx": "\\s*(?<package>[^:\\n]*)(?:\\:)?(?<version>.*)?",
-  "ExcludeDllRegEx": "\\:?\\s*(?<package>[^:\\n]*)(?:\\:)?(?<dll>.*)?",
   "RunningOnwindows": true,
   "NugetRepositories": [
-    //{
-    //  "Order": 1,
-    //  "IsPrivate": false,
-    //  "Name": "local",
-    //  "Source": "Nugetdownload", //in case of local , relative path to folder
-    //  "IsPasswordClearText": false,
-    //  "Username": "",
-    //  "Password": ""
-    //},
-    //{
-    //  "Order": 2,
-    //  "IsPrivate": true,
-    //  "Name": "myPrivateRepository",
-    //  "Source": "https://URL-FOR-myPrivateRepository/api/nuget/nugetcore/COMPLETE-END-POINT",
-    //  "IsPasswordClearText": true,
-    //  "Username": "johndeo@myorg.com",
-    //  "Password": "AlPH24GAMAc49fDELTA"
-    //},
     {
-      "Order": 2,
+      "Order": 1,
       "IsPrivate": false,
       "Name": "NugetV3",
       "Source": "https://api.nuget.org/v3/index.json",

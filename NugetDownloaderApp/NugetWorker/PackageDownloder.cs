@@ -61,7 +61,7 @@ namespace NugetDownloaderApp.NugetWorker
                                           .NugetFolder;
 
                 //var settings = Settings.LoadDefaultSettings(@"C:\Program Files (x86)\NuGet\Config", "Microsoft.VisualStudio.Offline.config", new MachineWideSettings());
-                //var machineWideSettings = new MachineWideSettings();
+                var machineWideSettings = new MachineWideSettings();
                 var settings = new Settings(rootPath);
                 var packageSourceProvider = new PackageSourceProvider(settings);
                 var sourceRepositoryProvider = new SourceRepositoryProvider(packageSourceProvider, providers);
@@ -94,12 +94,12 @@ namespace NugetDownloaderApp.NugetWorker
                     await packageManager.InstallPackageAsync(project, packageIdentity, resolutionContext, projectContext, downloadContext, _sourceRepos, new List<SourceRepository>(), CancellationToken.None);
 
                     var packageDeps = packageManager.GetInstalledPackagesDependencyInfo(project, CancellationToken.None, true);
-                    _logger.LogDebug($"Package {packageIdentity.Id} is got Installed at  | {project.GetInstalledPath(packageIdentity)} ");
+                    _logger.LogDebug($"Package {packageIdentity.Id} is got Installed at 【 {project.GetInstalledPath(packageIdentity)}】 ");
                 }
                 else
                 {
                     var packageDeps = packageManager.GetInstalledPackagesDependencyInfo(project, CancellationToken.None, true);
-                    _logger.LogDebug($"Package {packageIdentity.Id} is Already Installed at  | {project.GetInstalledPath(packageIdentity)} " + " | skipping instalation !!");
+                    _logger.LogDebug($"Package {packageIdentity.Id} is Already Installed at 【 {project.GetInstalledPath(packageIdentity)} 】" + " | skipping instalation !!");
                 }
 
                 #region GetDll paths
@@ -110,23 +110,6 @@ namespace NugetDownloaderApp.NugetWorker
                 {
                     downloadedDllPaths.AddRange(dllstoAdd);
                 }
-
-                ////now iterate for child identities , but as we have alreayd written login for recursive install , check if this
-                //is now really required or not ?
-
-                //if (packageWrapper.childPackageIdentities != null && packageWrapper.childPackageIdentities.Count > 0)
-                //{
-                //    foreach (var childPackageIdentity in packageWrapper.childPackageIdentities)
-                //    {
-
-                //        var _dllstoAdd = NugetHelper.Instance.GetInstallPackagesDllPath(packageWrapper., ref project);
-                //        if (_dllstoAdd.Count > 0)
-                //        {
-                //            downloadedDllPaths.AddRange(_dllstoAdd);
-                //        }
-
-                //    }
-                //}
 
                 #endregion
 

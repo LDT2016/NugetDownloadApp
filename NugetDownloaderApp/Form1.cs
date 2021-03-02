@@ -35,6 +35,7 @@ namespace NugetDownloaderApp
 
             try
             {
+                logger.LogData.Clear();
                 logger.LogDebug("");
                 logger.LogDebug("!!!!!!!!!Begin!!!!!!!!!");
                 var nugetEngine = new NugetEngine();
@@ -76,7 +77,8 @@ namespace NugetDownloaderApp
             }
             else if (e.Cancelled)
             {
-                toolStripStatusLabel1.Text = "Ok, Finished!";
+                toolStripStatusLabel1.Text = "Finished!";
+                richTextBox1.Text = NugetHelper.Instance.logger.LogData.ToString();
             }
             else
             {

@@ -21,7 +21,7 @@ namespace NugetDownloaderApp.NugetWorker.Utility
         #region fields
 
         private static readonly Lazy<NugetHelper> lazy = new Lazy<NugetHelper>(() => new NugetHelper());
-        private static ILogger _logger = new Logger("log.log");
+        private static Logger _logger = new Logger("log.log");
         private NugetSettings _nugetSettings;
 
         #endregion
@@ -36,7 +36,7 @@ namespace NugetDownloaderApp.NugetWorker.Utility
 
         public static NugetHelper Instance => lazy.Value;
 
-        public ILogger logger
+        public Logger logger
         {
             get => _logger;
             set => _logger = value;
@@ -93,7 +93,7 @@ namespace NugetDownloaderApp.NugetWorker.Utility
 
             if (!string.IsNullOrWhiteSpace(packageFilePath))
             {
-                _logger.LogDebug(packageFilePath);
+                _logger.LogDebug($"Package File Path is location in 【 {packageFilePath} 】");
 
                 var archiveReader = new PackageArchiveReader(packageFilePath);
                 var nugetFramwork = NuGetFramework.ParseFrameworkName(Instance.GetTargetFramwork(), new DefaultFrameworkNameProvider());
@@ -123,7 +123,7 @@ namespace NugetDownloaderApp.NugetWorker.Utility
                                             .ToLower();
                         var processor = group.GetProcessor();
 
-                        _logger.LogDebug($"dll Path: {installedDllPath}");
+                        _logger.LogDebug($"Package Extract Path 【 {installedDllPath}】");
 
                         //check if file path exist , then only add
                         if (File.Exists(installedDllPath) && extension == ".dll")
